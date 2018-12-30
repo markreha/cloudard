@@ -1,16 +1,16 @@
 **IoT Device Reference Application**
 ==================
-The example IoT Device Reference application implemented in a Raspberry Pi 3 and Sense HAT reads IoT data from the Sense HAT and posts this data to the IoT Services Reference application using its published REST API's. These applications in combination demonstrate a simple, scalable, Cloud based IoT application.
+The example IoT Device Reference application implemented in an Arduino Uno Wifi Rev2 and Lucky Shield reads IoT data from the Sense HAT and posts this data to the IoT Services Reference application using its published REST API's. These applications in combination demonstrate a simple, scalable, Cloud based IoT application.
 
 <p align="center">
-	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice.png" alt="IoT Device"/>
+	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device"/>
 </p>
 
 Architecture & Technologies
 --------
- The IoT Device Reference application is designed and implemented in Python using the Sense HAT API's included in the Raspbian OS image. 
+ The IoT Device Reference application is designed and implemented in C using the Lucky Shield support libaries. 
 
-The [IoT Sense HAT](http://pythonhosted.org/sense-hat/) supports the following features:
+The Lucky Shield supports the following features:
 
  - Temperature, Humidity, and Barometric pressure 
  - Gyroscope Accelerometer, and Magnetometer
@@ -27,9 +27,8 @@ It should be noted that the IoT Device Reference application contains additional
 
 Repository Contents
 ----------
-This repository contains code to support the Raspberry Pi 3 and Sense HAT or a Raspberry Pi 3 along with discrete DHT11 and LED components wired to a breadboard. The IoT Device Reference application can be used as a starting point to monitor Weather IoT data.
+This repository contains code to support the Arduino Uno Wifi Rev2 and Lucky Shield. The IoT Device Reference application can be used as a starting point to monitor Weather IoT data.
 
- - ***app/hat***: this folder contains the Python 3 code for the Reference IoT Device application using a Sense HAT.
- - ***app/discrete***: this folder contains the Python 3 code for the Reference IoT Device application using the DHT11 and LED discrete components.
+ - ***app/lucky***: this folder contains the C code for the Reference IoT Device application using a Lucky Shield.
 
 [Back to Top](#iot-device-reference-application)
