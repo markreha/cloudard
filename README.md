@@ -19,9 +19,7 @@ The Lucky Shield supports the following features:
  
 Basic Application Functionality
 --------
-The IoT Device Reference application logic, as illustrated in the flow chart below, primary functionality includes sitting in loop reading the Sense HAT IoT data, posting this data to the IoT Services application using a REST API, and then sleeping for a specified period of time. The current IoT Device Reference application leverages the LED display and the Temperature, Humidity, and Barometric pressure sensors in its implementation. The application uses the Logging Framework built into the Python 3 libraries. The application could be extended in the future to leverage other features of the Sense HAT.
-
-It should be noted that the IoT Device Reference application contains additional logic so that the Raspberry Pi and Sense HAT could be shared across multiple back end IoT Services applications with the assumption that each back end adheres to the REST API as defined in this SDK. The REST API endpoints are configured in the Config.py code module.
+The IoT Device Reference application logic, as illustrated in the flow chart below, primary functionality includes sitting in loop reading the Lucky Shield IoT data, posting this data to the IoT Services application using a REST API, and then sleeping for a specified period of time. The current IoT Device Reference application leverages the LED display and the Temperature, Humidity, and Barometric pressure sensors in its implementation. The application could be extended in the future to leverage other features of the Lucky Shield.
 
 ![IoT Device Flow Chart Diagram](https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotflowchart.png)
 
