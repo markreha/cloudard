@@ -1,3 +1,14 @@
+/**
+ * NAME: Cloudard.c
+ * DESCRIPTION: Arduino Uno Wifi Rev2 and Luck Shield application to demonstrate an IoT Device 
+ *              capturing Weather Data from a Lucky Shield and posting the sensor data to a 
+ *              backend REST API.
+ * 
+ * AUTHOR: Professor Mark Reha
+ * VERSION: 1.0.0   Initial release
+ * COPYRIGHT: On The Edge Software Consulting Services 2018.  All rights reserved.
+ * 
+ */
 #include "Lucky.h"
 
 #include <Wire.h>
@@ -16,6 +27,18 @@ char ssid[] = "StarBase III";
 char pass[] = "Brianna3325";    
 int postCount = 0;   
 
+/**
+ * NAME: setup()
+ * DESXRIPTION: Arduino Entry Point for setting up the application:
+ * PROCESS:       Initialize Luck Shield
+ *                Display Welcome Message
+ *                Initialize Logger
+ *                Initialize the LED Display
+ *                Connect to the Wifi Network
+ * INPUTS: None
+ * OUTPUTS: None
+ * 
+ */
 void setup() 
 {
   // Initialize the System
@@ -23,7 +46,7 @@ void setup()
   Serial.begin(9600);
   while(!Serial);
 
-  // Initialize Logger
+  // Initialize the Logger
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
   // Display application startup message
@@ -45,9 +68,23 @@ void setup()
   }
 }
 
+/**
+ * NAME: loop()
+ * DESXRIPTION: Arduino Entry Point for the application:
+ * PROCESS:       Loop Forever
+ *                  Get the temperature, pressure, and humidity sensor data
+ *                  Convert the sensor data to JSON
+ *                  Log the sensor data   
+ *                  POST the sensor data to the REST endpoints
+ *                  Update the LED Display
+ *                  Sleep
+ * INPUTS: None
+ * OUTPUTS: None
+ * 
+ */
 void loop() 
 {
-  // Get current temp, pressure, and humidity
+  // Get current temperature, pressure, and humidity
   float temperature = (lucky.environment().temperature() * 9/5) + 32;
   float pressure = (lucky.environment().pressure() / 100.0F) / 33.8638F;
   float humidity = lucky.environment().humidity();
@@ -87,6 +124,18 @@ void loop()
   delay(SAMPLE_TIME_SECS * 1000);
 }
 
+/**
+ * NAME: createJSON()
+ * DESCRIPTION: Utility method to convert sensor data to JSON.
+ * 
+ * INPUTS:
+ *    float temperature   The temperature read from the sensor
+ *    float pressure      The pressure read from the sensor
+ *    float humidity      The humidity read from the sensor
+ * OUTPUTS:
+ *    JSON formatted sensor data per the REST API specification
+ *    
+ */
 String createJSON(float temperature, float pressure, float humidity)
 {
   // Round everything to just 2 decimal places
@@ -108,6 +157,18 @@ String createJSON(float temperature, float pressure, float humidity)
   return json;
 }
 
+/**
+ * NAME: displayLED()
+ * DESCRIPTION: Utility method to update the LED Display.
+ * PROCESS:   Bit 0 of input value is displayed on LED1
+ *            Bit 1 of input value is displayed on LED2
+ * 
+ * INPUTS:
+ *    int value   The count to take 2 bits from for the LED Display
+ * OUTPUTS:
+ *    None
+ *    
+ */
 void displayLED(int value)
 {
   // Display values as a 2 bit binary value on LED1 and LED2
@@ -121,6 +182,22 @@ void displayLED(int value)
     lucky.gpio().digitalWrite(LED2,LOW);    
 }
 
+/**
+ * NAME: testEndpoint()
+ * DESCRIPTION: Utility method to access the Test API from the REST Endpoint (only used for basic testing during development).
+ * PROCESS:   Log the GET Request parameters
+ *            Create a HTTP Client Connection
+ *            Make a HTTP GET Request with Basic HTTP Authentication Headers set
+ *            Log the Status and Response back from the HTTP GET Request            
+ * 
+ * INPUTS:
+ *    String serverAddress    The REST API Endpoint server domain address
+ *    String uri              The REST API Endpoint server URI
+ *    int port                The REST API Endpoint server Port
+ * OUTPUTS:
+ *    None
+ *    
+ */
 void testEndpoint(String serverAddress, String uri, int port)
 {
   // Send HTTP GET Request to the Server for the Test REST API
@@ -140,6 +217,22 @@ void testEndpoint(String serverAddress, String uri, int port)
   Log.verbose(F("Return Response: %s\n"), response.c_str());
 }
 
+/**
+ * NAME: postToEndpoint()
+ * DESCRIPTION: Utility method to access the Save API from the REST Endpoint.
+ * PROCESS:   Log the POST Request parameters
+ *            Create a HTTP Client Connection
+ *            Make a HTTP POST Request with Basic HTTP Authentication Headers set and JSON payload
+ *            Log the Status and Response back from the HTTP GET Request            
+ * 
+ * INPUTS:
+ *    String serverAddress    The REST API Endpoint server domain address
+ *    String uri              The REST API Endpoint server URI
+ *    int port                The REST API Endpoint server Port
+ * OUTPUTS:
+ *    None
+ *    
+ */
 void postToEndpoint(String serverAddress, String uri, int port, String json)
 {
   // Send HTTP POST Request to the Server for the Save REST API
