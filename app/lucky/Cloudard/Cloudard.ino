@@ -102,7 +102,6 @@ String createJSON(float temperature, float pressure, float humidity)
   root["pressure"] = pressure;
   root["humidity"] = humidity;
 
-
   // Return JSON as a string
   String json;
   root.printTo(json);
