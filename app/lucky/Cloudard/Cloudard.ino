@@ -62,7 +62,7 @@ void loop()
   #if DEV_ENV
     String serverAddress = "10.0.1.101";
     testEndpoint(serverAddress, "/cloudservices/rest/weather/get/1/6", 8080);
-    postToEndpoint(serverAddress, "/cloudservices/rest/weather/save", port, json);
+    postToEndpoint(serverAddress, "/cloudservices/rest/weather/save", 8080, json);
   #else
     String serverAddress = "";
     // Post to Azure
