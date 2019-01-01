@@ -17,14 +17,15 @@
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
+#include "Cloudard.h"
 
 #define DEV_ENV 0
 #define SAMPLE_TIME_SECS  7200
 
 WiFiClient wifi;
 WiFiSSLClient wifiSecure;
-char ssid[] = "StarBase III";        
-char pass[] = "Brianna3325";    
+char ssid[] = SECRET_SSID;        
+char pass[] = SECRET_PASS;    
 int postCount = 0;   
 
 /**
