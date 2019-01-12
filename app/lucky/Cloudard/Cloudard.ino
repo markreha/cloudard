@@ -11,16 +11,22 @@
  */
 #include "Lucky.h"
 
-#include <Wire.h>
-#include <SPI.h>
+// Adjust these flags to reduce program size
+#define HAS_LCD true
+#define TRIM_APP true
+
+// Set this to true to send REST API request to local development server
+#define DEV_ENV false
+
 #include <WiFiNINA.h>
 #include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>
-#include <ArduinoLog.h>
+#if TRIM_APP == false
+  #include <ArduinoJson.h>
+#endif
+#if HAS_LCD == false
+  #include <ArduinoLog.h>
+#endif
 #include "Cloudard.h"
-
-#define DEV_ENV 0
-#define SAMPLE_TIME_SECS  7200
 
 WiFiClient wifi;
 WiFiSSLClient wifiSecure;
@@ -48,10 +54,14 @@ void setup()
   while(!Serial);
 
   // Initialize the Logger
+#if HAS_LCD == false
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+#endif
 
   // Display application startup message
+#if HAS_LCD == false
   Log.notice("IoT Weather Application v0.1\n\n");
+#endif
 
   // Clear LED display
   postCount = 0;
@@ -61,11 +71,15 @@ void setup()
   int status = WL_IDLE_STATUS;
   while ( status != WL_CONNECTED) 
   {
-    Log.verbose(F("Attempting to connect to Network named: %s\n"), ssid);
-    status = WiFi.begin(ssid, pass);
-    Log.verbose("You're connected to the network\n");
-    Log.verbose(F("SSID: %s\n"), WiFi.SSID());
-    Log.verbose(F("IP Address: %d.%d.%d.%d\n"), WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+#if HAS_LCD == false
+   Log.verbose(F("Attempting to connect to Network named: %s\n"), ssid);
+#endif
+  status = WiFi.begin(ssid, pass);
+#if HAS_LCD == false
+   Log.verbose("You're connected to the network\n");
+   Log.verbose(F("SSID: %s\n"), WiFi.SSID());
+   Log.verbose(F("IP Address: %d.%d.%d.%d\n"), WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+#endif
   }
 }
 
@@ -94,10 +108,12 @@ void loop()
   String json = createJSON(temperature, pressure, humidity);
 
   // Print sensor data as JSON to the Verbose Logger
+#if HAS_LCD == false
   Log.verbose(F("Generated JSON sensor data: %s\n\n"), json.c_str());
+#endif
 
   // POST the sensor data to all REST Endpoints
-  #if DEV_ENV
+  #if DEV_ENV == true
     String serverAddress = "10.0.1.101";
     testEndpoint(serverAddress, "/cloudservices/rest/weather/get/1/6", 8080);
     postToEndpoint(serverAddress, "/cloudservices/rest/weather/save", 8080, json);
@@ -139,23 +155,45 @@ void loop()
  */
 String createJSON(float temperature, float pressure, float humidity)
 {
+  // Convert sensor data to JSON 
+#if TRIM_APP == false
   // Round everything to just 2 decimal places
   temperature = roundf((temperature * 100 + .5))/100;
   pressure = roundf((pressure * 100 + .5))/100;
   humidity = roundf((humidity * 100 + .5))/100;
-     
-  // Convert sensor data to JSON
+
+  // Use JSON Library if we can afford the space
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   root["deviceID"] = 1;
   root["temperature"] = temperature;
   root["pressure"] = pressure;
   root["humidity"] = humidity;
-
-  // Return JSON as a string
-  String json;
+  
+   // Return JSON as a string
+   String json;
   root.printTo(json);
   return json;
+#else
+  // Use String.concat() and optimized floatToString() which is a bit smaller implementation than using JSON Library
+  char str_temp1[6], str_temp2[6], str_temp3[6];
+  floatToString(str_temp1, temperature);
+  floatToString(str_temp2, pressure);
+  floatToString(str_temp3, humidity);
+  String buffer ="";
+  buffer.concat("{\"deviceID\":");
+  buffer.concat(1);
+  buffer.concat(",\"temperature\":");
+  buffer.concat(str_temp1);
+  buffer.concat(",\"humidity\":");
+  buffer.concat(str_temp2);
+  buffer.concat(",\"humidity\":");
+  buffer.concat(str_temp3);
+  buffer.concat("}");
+
+  // Return JSON as a string
+  return String(buffer);
+#endif
 }
 
 /**
@@ -202,7 +240,9 @@ void displayLED(int value)
 void testEndpoint(String serverAddress, String uri, int port)
 {
   // Send HTTP GET Request to the Server for the Test REST API
+#if HAS_LCD == false
   Log.verbose(F("Making GET request with HTTP basic authentication to %s\n"), serverAddress.c_str());
+#endif
   HttpClient client = HttpClient(port == 443 ? wifiSecure : wifi, serverAddress, port);
   client.beginRequest();
   client.get(uri);
@@ -214,8 +254,10 @@ void testEndpoint(String serverAddress, String uri, int port)
   String response = client.responseBody();
 
   // Print status and response to the Verbose Logger
+#if HAS_LCD == false
   Log.verbose(F("Return Status code: %d\n"), statusCode);
   Log.verbose(F("Return Response: %s\n"), response.c_str());
+#endif
 }
 
 /**
@@ -231,13 +273,15 @@ void testEndpoint(String serverAddress, String uri, int port)
  *    String uri              The REST API Endpoint server URI
  *    int port                The REST API Endpoint server Port
  * OUTPUTS:
- *    None
+ *    HTTP Status Code
  *    
  */
-void postToEndpoint(String serverAddress, String uri, int port, String json)
+int postToEndpoint(String serverAddress, String uri, int port, String json)
 {
   // Send HTTP POST Request to the Server for the Save REST API
+#if HAS_LCD == false
   Log.verbose(F("Making POST request with HTTP basic authentication to %s\n"), serverAddress.c_str());
+#endif
   HttpClient client = HttpClient(wifi, serverAddress, port);
   client.beginRequest();
   client.post(uri);
@@ -253,6 +297,59 @@ void postToEndpoint(String serverAddress, String uri, int port, String json)
   String response = client.responseBody();
 
   // Print status and response to the Verbose Logger
+#if HAS_LCD == false
   Log.verbose(F("Return Status code: %d\n"), statusCode);
   Log.verbose(F("Return Response: %s\n"), response.c_str());
+#endif
+
+  // Return HTTP Status Code
+  return statusCode;
+}
+
+/**
+ * NAME: floatToString()
+ * DESCRIPTION: Utility method that is highly optimized to convert a float to a string.
+ * PROCESS:   Truncate the float to get the whole number
+ *            Remove the whole part of float and shift 2 places over
+ *            Truncate the fractional part from the new whole part
+ * 
+ * INPUTS:
+ *    char* str   The output string buffer
+ *    float flt   The input floating point number to convert
+ * OUTPUTS:
+ *    NONE (output is copied to input str buffer)
+ */
+void floatToString(char* str, float flt)
+{
+  int whole, fraction;
+
+  //Get whole and fractional part of input floating point number
+  whole = (int)flt;
+  fraction = ((flt + .005) - whole) * 100;
+
+  // Convert whole to character string (up to 3 digits) and fraction to character string (up to 2 digits)
+  int index = 0;
+  if((whole - 100) > 0)
+  {
+    str[index++] = 0x30 + (whole/100);
+    whole = whole - 100;     
+  }
+  if((whole - 10) > 0)
+  {
+    str[index++] = 0x30 + (whole/10);
+    whole = whole - ((whole/10) * 10);     
+  }
+  str[index++] = 0x30 + whole;
+  str[index++] = '.';
+  if((fraction - 10) > 0)
+  {
+    str[index++] = 0x30 + (fraction/10);
+    fraction = fraction - ((fraction/10) * 10);     
+  }
+  else
+  {
+    str[index++] = 0x30;
+  }
+  str[index++] = 0x30 + fraction;
+  str[index++] = '\0';
 }
