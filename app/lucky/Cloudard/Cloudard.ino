@@ -12,7 +12,7 @@
 #include "Lucky.h"
 
 // Adjust these flags to reduce program size
-#define HAS_LCD true
+#define HAS_LCD false
 #define TRIM_APP true
 
 // Set this to true to send REST API request to local development server
@@ -185,7 +185,7 @@ String createJSON(float temperature, float pressure, float humidity)
   buffer.concat(1);
   buffer.concat(",\"temperature\":");
   buffer.concat(str_temp1);
-  buffer.concat(",\"humidity\":");
+  buffer.concat(",\"pressure\":");
   buffer.concat(str_temp2);
   buffer.concat(",\"humidity\":");
   buffer.concat(str_temp3);
