@@ -176,7 +176,7 @@ String createJSON(float temperature, float pressure, float humidity)
   return json;
 #else
   // Use String.concat() and optimized floatToString() which is a bit smaller implementation than using JSON Library
-  char str_temp1[6], str_temp2[6], str_temp3[6];
+  char str_temp1[8], str_temp2[8], str_temp3[8];
   floatToString(str_temp1, temperature);
   floatToString(str_temp2, pressure);
   floatToString(str_temp3, humidity);
