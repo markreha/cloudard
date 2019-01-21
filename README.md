@@ -5,9 +5,7 @@ Lucky Shield and posts this data to the IoT Services Reference application using
 
 | Head 1 | Head 2 |
 |:--------:|:------:|
-| <td align="center">
-	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device" width="400" height="300" />      | <td align="center">
-<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice2.png" alt="IoT Device" width="300" height="400"/>      |
+| <img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device" width="400" height="300" />      | <img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice2.png" alt="IoT Device" width="300" height="400"/>      |
 
 <table align="center">
 	<tr>
