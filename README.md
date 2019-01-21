@@ -16,6 +16,11 @@ Lucky Shield and posts this data to the IoT Services Reference application using
 	</tr>
 </table>
 
+<p float="left">
+	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device" width="400" height="300" />
+<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice2.png" alt="IoT Device" width="300" height="400"/>
+</p>
+
 Architecture & Technologies
 --------
  The IoT Device Reference application is designed and implemented in C using the Lucky Shield support libaries. 
