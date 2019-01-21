@@ -5,7 +5,7 @@ Lucky Shield and posts this data to the IoT Services Reference application using
 
 <table border="0">
 	<tr>
-		<td border="0" width="10%"></td>
+		<td border="10" width="10%"></td>
 		<td border="0" align="center">
 	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device" width="400" height="300" />
 		</td>
