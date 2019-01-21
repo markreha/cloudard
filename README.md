@@ -1,12 +1,12 @@
 **Arduino IoT Device Reference Application**
 ==================
 The example IoT Device Reference application implemented in an Arduino Uno Wifi Rev2 and Lucky Shield reads IoT data from the 
-Lucky Shield and posts this data to the IoT Services Reference application using its published REST API's. These applications in combination demonstrate a simple, scalable, Cloud based IoT application. Get the [Cloud Workshop SDK!](https://github.com/markreha/cloudworkshop/blob/master/README.md)
+Lucky Shield and posts this data to the IoT Services Reference application using its published REST API's. These applications in combination demonstrate a simple, scalable, Cloud based IoT application. The IoT Device Reference application also can be extended to use an external LED Dispaly that is connected to a second Arduino Uno (and Wifi Shield) using the Wifi network to communicate back and forth. The example application and source code is located within the repository for this application under the IotDislay project. Get the [Cloud Workshop SDK!](https://github.com/markreha/cloudworkshop/blob/master/README.md)
 
 <p align="center">
-	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device"/>
-</p>
-
+	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device"/></p>
+<p align="center">
+	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice2.png" alt="IoT Device"/></p>
 Architecture & Technologies
 --------
  The IoT Device Reference application is designed and implemented in C using the Lucky Shield support libaries. 
