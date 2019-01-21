@@ -19,9 +19,7 @@
 
 #include <WiFiNINA.h>
 #include <ArduinoHttpClient.h>
-#if TRIM_APP == false
-  #include <ArduinoJson.h>
-#endif
+#include <ArduinoJson.h>
 #include <ArduinoLog.h>
 #include "Cloudard.h"
 
@@ -295,6 +293,7 @@ void testEndpoint(String serverAddress, String uri, int port)
  *    String serverAddress    The REST API Endpoint server domain address
  *    String uri              The REST API Endpoint server URI
  *    int port                The REST API Endpoint server Port
+ *    int json                The JSON to send to the Endpoint server
  * OUTPUTS:
  *    HTTP Status Code
  *    
@@ -304,6 +303,7 @@ int postToEndpoint(String serverAddress, String uri, int port, String json)
   // Send HTTP POST Request to the Server for the Save REST API
   Log.verbose(F("Making POST request with HTTP basic authentication to %s\n"), serverAddress.c_str());
   HttpClient client = HttpClient(wifi, serverAddress, port);
+  client.setHttpResponseTimeout(60 * 1000);
   client.beginRequest();
   client.post(uri);
   client.sendBasicAuth("CloudWorkshop", "dGVzdHRlc3Q=");
