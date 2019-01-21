@@ -16,10 +16,10 @@ Lucky Shield and posts this data to the IoT Services Reference application using
 	</tr>
 </table>
 
-<p align="center">
+<div style="display: inline-block; margin: 10px; padding: 0px; text-align: center; vertical-align: middle;">
 	<img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice1.png" alt="IoT Device" width="400" height="300" />
 <img src="https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotdevice2.png" alt="IoT Device" width="300" height="400"/>
-</p>
+</div>
 
 Architecture & Technologies
 --------
