@@ -6,10 +6,6 @@
 #include <SoftwareSerial.h>
 #include <ArduinoHttpClient.h>
 
-// Adjust for Wifi
-#define SECRET_SSID "StarBase III"
-#define SECRET_PASS "Brianna3325"
-
 // Adjust these settings for desired Display Setup
 #define LED_SIZE  20
 #define LED_BORDER 2
