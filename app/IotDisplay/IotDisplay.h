@@ -7,6 +7,7 @@
 
 extern void initializeDisplay(int ledSize, int ledBorder, bool landscape);
 extern void displayWelcomeMessage(String msg1, String msg2);
+extern void displayMessage(int row, int column, String msg, int fontSize, int color);
 extern void clearDisplay();
 extern int getNumberLEDColumns();
 extern int getNumberLEDRows();

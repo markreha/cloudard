@@ -1,6 +1,6 @@
 // Adjust these flags to reduce program size
 #define USE_FONTS 0
-#define TRIM_APP true
+#define TRIM_APP false
 
 #include <Adafruit_GFX.h>;
 #include <MCUFRIEND_kbv.h>;
@@ -82,18 +82,10 @@ void displayWelcomeMessage(String msg1, String msg2)
   tft.getTextBounds("GCU", 0, 0, &x1, &y1, &w, &h);
   tft.setCursor((screenWidth/2) - w/2, (screenHeight/2) + h/2);
 #else
- #if TRIM_APP == false  
-   int x1, y1, w, h;
-   tft.setTextSize(8);
-   tft.getTextBounds("GCU", 0, 0, &x1, &y1, &w, &h);
-   tft.setCursor((screenWidth/2) - w/2, (screenHeight/2) - h/2);
- #else
+  int x1, y1, w, h;
   tft.setTextSize(8);
-  if(IS_LANDSCAPE)
-      tft.setCursor(168, 128);
-   else
-     tft.setCursor(88, 208);
- #endif
+  tft.getTextBounds("GCU", 0, 0, &x1, &y1, &w, &h);
+  tft.setCursor((screenWidth/2) - w/2, (screenHeight/2) - h/2);
 #endif
   tft.setTextColor(TFT_PURPLE);
   tft.print("G");
@@ -104,6 +96,17 @@ void displayWelcomeMessage(String msg1, String msg2)
   tft.setTextColor(TFT_PURPLE);
   tft.print("U");
   delay(1000);
+}
+
+void displayMessage(int row, int column, String msg, int fontSize, int color)
+{
+  int x1, y1, w, h;
+
+  tft.setTextSize(fontSize);
+  tft.getTextBounds(msg, 0, 0, &x1, &y1, &w, &h);
+  tft.setCursor(w * column, h * row);
+  tft.setTextColor(TFT_WHITE);
+  tft.print(msg); 
 }
 
 void displayLED(int x, int y, int color)

@@ -29,9 +29,8 @@ WiFiClient remoteLedClient;
 char ssid[] = SECRET_SSID;        
 char pass[] = SECRET_PASS;    
 int postCount = 0;   
-char ledDisplayAddress[] = "10.0.1.166";
+char ledDisplayAddress[] = "10.0.1.154";
 int ledDisplayPort = 8081;
-
 
 /**
  * NAME: setup()
@@ -156,7 +155,29 @@ void loop()
 #endif
 
   // Sleep until we need to read the sensors again
-  delay(SAMPLE_TIME_SECS * 1000);
+  delay(SAMPLE_TIME_SECS * 1000UL);
+  wait(SAMPLE_TIME_SECS * 1000UL);
+}
+
+/**
+ * NAME: wait()
+ * DESCRIPTION: Utility method to accurately wait the Sample Time.
+ * 
+ * INPUTS:
+ *    waitTime  Time to wait in milliseconds
+ * OUTPUTS:
+ *    None
+ *    
+ */
+void wait(unsigned long waitTime)
+{
+  // Hang until the Sample Time has expired
+  unsigned long currentMillis = millis();
+  unsigned long previousMillis = currentMillis;
+  do
+  {
+    currentMillis = millis();
+  }while (currentMillis - previousMillis < waitTime);
 }
 
 /**

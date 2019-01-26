@@ -28,6 +28,8 @@ String appVersion = "Version 0.1";
 #define LANDSCAPE true
 
 int ledX, ledY = 0;
+bool hasConnectedToClient = false;
+IPAddress ipAddress;
 ESP8266Server server(8081);
 
 void setup() 
@@ -37,7 +39,7 @@ void setup()
   while(!Serial);
 
   // Initialize and connect to WiFi module
-  if(!wifi.begin(12, 13))
+  if(!wifi.begin(10, 11))
   {
     Serial.println("Failed to connect to Wifi shield\n");
     while(1);
@@ -50,10 +52,12 @@ void setup()
       Serial.println("Failed to connect to Wifi\n");
       while(1);
     }
+    ipAddress = wifi.localIP();
     Serial.print("Wifi connected to: ");Serial.println(wifi.SSID());
-    Serial.print("IP Address: ");Serial.println(wifi.localIP());
+    Serial.print("IP Address: ");Serial.println(ipAddress);
     wifi.updateStatus();
-    Serial.print("Wifi status is : ");Serial.println(wifi.status());   //2- wifi connected with ip, 3- got connection with servers or clients, 4- disconnect with clients or servers, 5- no wifi
+    Serial.print("Wifi status is: ");Serial.println(wifi.status());   //2- wifi connected with ip, 3- got connection with servers or clients, 4- disconnect with clients or servers, 5- no wifi
+    hasConnectedToClient = false;
     server.begin();
   }
   
@@ -69,11 +73,27 @@ void setup()
 void loop() 
 {
 #if HAS_IOT
+  // Display the Wifi IP Address that the IoT Device can connect to and once first connection has been made clear the screen and display LED squares
+  if(!hasConnectedToClient)
+  {
+    String address = String("Connect your IoT Device to ") + ipAddress[0] + String(".") + ipAddress[1] + String(".") + ipAddress[2] + String(".") + ipAddress[3];
+    displayMessage(0, 0, address, 2, 0);
+    displayMessage(2, 0, "  Waiting to connect to IoT Device...", 2, 0);
+  }
   ESP8266Client client = server.available();
   if(client)
+  {
     Serial.println("Valid Client");
+    if(!hasConnectedToClient)
+    {
+      hasConnectedToClient = true;
+      clearDisplay();
+    }
+  }
   else
+  {
     Serial.println("No Client");
+  }
       
   // Wait for a Command from the Remote IoT Arduino
   while(client.connected())
