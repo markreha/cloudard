@@ -37,8 +37,7 @@ Repository Contents
 ----------
 This repository contains code to support the Arduino Uno Wifi Rev2 and Lucky Shield. The IoT Device Reference application can be used as a starting point to monitor Weather IoT data. I order to build the Arduino application requires the following libraries: WiFiNINA, ArduinoHttpClient, ArduinoJson, and ArduinoLog. To run this code on your Arduino simply clone this repository to your device, open the Arduino IDE project file, and customize the code as nessarary for your backend REST API's.
 
- - ***app/lucky***: this folder contains the C code for the Reference IoT Device application using an Arduino Uno Wifi Rev2 and a Lucky Shield.
- API's.API's.
- - ***app/IotDisplay***: this folder contains the C code for the Reference IoT Display application using an Arduino Uno, Wifi SHIELD, and a LCD Display Shield.
+ - ***app/lucky***: this folder contains the C code for the IoT Device Reference Application using an Arduino Uno Wifi Rev2 and a Lucky Shield.
+ - ***app/IotDisplay***: this folder contains the C code for the IoT Display Reference application using an Arduino Uno R3, Wifi Shield, and a LCD Display Shield.
 
 [Back to Top](#iot-device-reference-application)
