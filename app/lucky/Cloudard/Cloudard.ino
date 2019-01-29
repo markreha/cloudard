@@ -55,7 +55,7 @@ void setup()
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
   // Display application startup message
-  Log.notice("IoT Weather Application v0.1\n\n");
+  Log.notice(F("IoT Weather Application v0.1\n\n"));
 
   // Clear LED display
   postCount = 0;
@@ -67,9 +67,9 @@ void setup()
   {
     Log.verbose(F("Attempting to connect to Network named: %s\n"), ssid);
     status = WiFi.begin(ssid, pass);
-   Log.verbose("You're connected to the network\n");
-   Log.verbose(F("SSID: %s\n"), WiFi.SSID());
-   Log.verbose(F("IP Address: %d.%d.%d.%d\n"), WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    Log.verbose(F("You're connected to the network\n"));
+    Log.verbose(F("SSID: %s\n"), WiFi.SSID());
+    Log.verbose(F("IP Address: %d.%d.%d.%d\n"), WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
   }
 }
 
@@ -89,6 +89,10 @@ void setup()
  */
 void loop() 
 {
+  // For debugging display Free RAM
+  Serial.print(F("Free RAM is "));          
+  Serial.println(2048 - freeRam());
+
   // Get current temperature, pressure, and humidity
   float temperature = (lucky.environment().temperature() * 9/5) + 32;
   float pressure = (lucky.environment().pressure() / 100.0F) / 33.8638F;
@@ -155,8 +159,24 @@ void loop()
 #endif
 
   // Sleep until we need to read the sensors again
-  delay(SAMPLE_TIME_SECS * 1000UL);
   wait(SAMPLE_TIME_SECS * 1000UL);
+}
+
+/**
+ * NAME: freeRam()
+ * DESCRIPTION: Utility method to get Free RAM
+ * 
+ * INPUTS:
+ *    None
+ * OUTPUTS:
+ *    Available Free RAM in bytes
+ *    
+ */
+int freeRam() 
+{
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 }
 
 /**
@@ -194,13 +214,12 @@ void wait(unsigned long waitTime)
  */
 String createJSON(float temperature, float pressure, float humidity)
 {
-  // Convert sensor data to JSON 
   // Round everything to just 2 decimal places
   temperature = roundf((temperature * 100 + .5))/100;
   pressure = roundf((pressure * 100 + .5))/100;
   humidity = roundf((humidity * 100 + .5))/100;
 
-  // Use JSON Library if we can afford the space
+  // Convert sensor values to JSON using the JSON Library
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   root["deviceID"] = 1;
@@ -208,8 +227,8 @@ String createJSON(float temperature, float pressure, float humidity)
   root["pressure"] = pressure;
   root["humidity"] = humidity;
   
-   // Return JSON as a string
-   String json;
+  // Return JSON as a string
+  String json;
   root.printTo(json);
   return json;
 }
@@ -241,29 +260,30 @@ void displayLED(int value)
 
 /**
  * NAME: displayRemoteLED()
- * DESCRIPTION: Utility method to send a Command and Data to a Remote LED Display over a Wifi Connection.
+ * DESCRIPTION: Utility method to send a Command and Data to a Remote LCD Display over a Wifi Connection.
  * PROCESS:   Connect to remote LED Display Arduino
  *            Send Command and Data
  * 
  * INPUTS:
- *    String cmd    The Command for the remote LED Display (LED and MESSAGE)
- *    String data   The Command Data for the remote LED Display (LED color and MESSAGE msg)
+ *    String cmd    The Command for the remote LCD Display (LED and MESSAGE)
+ *    String data   The Command Data for the remote LED Display (LCD color and MESSAGE msg)
  * OUTPUTS:
  *    None
  *    
  */
 void displayRemoteLED(String cmd, String data)
 {
-  Serial.println("Sending Message to Remote LED Display........");
+  Serial.println(F("Sending Message to Remote LED Display........"));
   if (remoteLedClient.connect(ledDisplayAddress, ledDisplayPort)) 
   {
-    Serial.println("Connected to Remote LED Display");
+    Serial.println(F("Connected to Remote LED Display"));
     remoteLedClient.print(cmd + "=" + data + "\n");
-    Serial.println("Message sent");
+    Serial.println(F("Message sent"));
+    remoteLedClient.stop();
   }
   else
   {
-    Serial.println("No Connection to Remote LED Display");
+    Serial.println(F("No Connection to Remote LED Display"));
   }
 }
 
