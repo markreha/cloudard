@@ -89,10 +89,6 @@ void setup()
  */
 void loop() 
 {
-  // For debugging display Free RAM
-  Serial.print(F("Free RAM is "));          
-  Serial.println(2048 - freeRam());
-
   // Get current temperature, pressure, and humidity
   float temperature = (lucky.environment().temperature() * 9/5) + 32;
   float pressure = (lucky.environment().pressure() / 100.0F) / 33.8638F;
@@ -160,23 +156,6 @@ void loop()
 
   // Sleep until we need to read the sensors again
   wait(SAMPLE_TIME_SECS * 1000UL);
-}
-
-/**
- * NAME: freeRam()
- * DESCRIPTION: Utility method to get Free RAM
- * 
- * INPUTS:
- *    None
- * OUTPUTS:
- *    Available Free RAM in bytes
- *    
- */
-int freeRam() 
-{
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 }
 
 /**
@@ -279,7 +258,6 @@ void displayRemoteLED(String cmd, String data)
     Serial.println(F("Connected to Remote LED Display"));
     remoteLedClient.print(cmd + "=" + data + "\n");
     Serial.println(F("Message sent"));
-    remoteLedClient.stop();
   }
   else
   {
