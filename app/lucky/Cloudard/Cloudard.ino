@@ -62,15 +62,7 @@ void setup()
   displayLED(postCount);
 
   // Initialize and connect to WiFi module
-  int status = WL_IDLE_STATUS;
-  while ( status != WL_CONNECTED) 
-  {
-    Log.verbose(F("Attempting to connect to Network named: %s\n"), ssid);
-    status = WiFi.begin(ssid, pass);
-    Log.verbose(F("You're connected to the network\n"));
-    Log.verbose(F("SSID: %s\n"), WiFi.SSID());
-    Log.verbose(F("IP Address: %d.%d.%d.%d\n"), WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
-  }
+  connectToWifi();
 }
 
 /**
@@ -99,6 +91,13 @@ void loop()
 
   // Print sensor data as JSON to the Verbose Logger
   Log.verbose(F("Generated JSON sensor data: %s\n\n"), json.c_str());
+
+  // Make sure we are still connected to the Wifi network and if not connect back to the Wifi network
+  if(wifi.status() == WL_CONNECTION_LOST || wifi.status() == WL_DISCONNECTED)
+  {
+    Log.verbose(F("Lost connection to Wifi"));
+    connectToWifi();  
+  }
 
   // POST the sensor data to all REST Endpoints
   int errorCount = 0;
@@ -156,6 +155,29 @@ void loop()
 
   // Sleep until we need to read the sensors again
   wait(SAMPLE_TIME_SECS * 1000UL);
+}
+
+/**
+ * NAME: connectToWifi()
+ * DESCRIPTION: Connect to the Wifi Network using global SSID, Username, and Password.
+ * 
+ * INPUTS:
+ *    None
+ * OUTPUTS:
+ *    None
+ *    
+ */
+void connectToWifi()
+{
+  int status = WL_IDLE_STATUS;
+  while (status != WL_CONNECTED) 
+  {
+    Log.verbose(F("Attempting to connect to Network named: %s\n"), ssid);
+    status = WiFi.begin(ssid, pass);
+    Log.verbose(F("You're connected to the network\n"));
+    Log.verbose(F("SSID: %s\n"), WiFi.SSID());
+    Log.verbose(F("IP Address: %d.%d.%d.%d\n"), WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+  }  
 }
 
 /**
