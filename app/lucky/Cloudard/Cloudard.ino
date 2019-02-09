@@ -17,10 +17,15 @@
 // Set this to true to send REST API request to local development server
 #define DEV_ENV false
 
+// Set this to the number of seconds that the Watch Dog will use before reseting the Arduino
+#define WATCH_DOG_SECONDS 600
+
 #include <WiFiNINA.h>
-#include <ArduinoHttpClient.h>
+#include <HttpClient.h>
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
+#include <avr/interrupt.h>
+#include <avr/wdt.h>
 #include "Cloudard.h"
 
 WiFiClient wifi;
@@ -31,6 +36,8 @@ char pass[] = SECRET_PASS;
 int postCount = 0;   
 char ledDisplayAddress[] = "10.0.1.154";
 int ledDisplayPort = 8081;
+bool wdEnable = true;
+volatile int wdSecCount = WATCH_DOG_SECONDS;
 
 /**
  * NAME: setup()
@@ -63,6 +70,11 @@ void setup()
 
   // Initialize and connect to WiFi module
   connectToWifi();
+
+  // Initialize the RTC and internal Watch Dog counter
+  wdEnable = true;
+  wdSecCount = WATCH_DOG_SECONDS;
+  initRTC();
 }
 
 /**
@@ -81,6 +93,13 @@ void setup()
  */
 void loop() 
 {
+  // Enable and reset Watch Dog while we are in the processing loop (minus the wait())
+  wdEnable = true;
+  wdSecCount = WATCH_DOG_SECONDS;
+  
+  // For debugging display Free RAM
+  Log.verbose(F("Free RAM is %d\n"), freeRam());          
+  
   // Get current temperature, pressure, and humidity
   float temperature = (lucky.environment().temperature() * 9/5) + 32;
   float pressure = (lucky.environment().pressure() / 100.0F) / 33.8638F;
@@ -90,7 +109,7 @@ void loop()
   String json = createJSON(temperature, pressure, humidity);
 
   // Print sensor data as JSON to the Verbose Logger
-  Log.verbose(F("Generated JSON sensor data: %s\n\n"), json.c_str());
+  Log.verbose(F("Generated JSON sensor data: %s\n"), json.c_str());
 
   // Make sure we are still connected to the Wifi network and if not connect back to the Wifi network
   if(wifi.status() == WL_CONNECTION_LOST || wifi.status() == WL_DISCONNECTED)
@@ -110,14 +129,14 @@ void loop()
       ++errorCount;
   #else
     String serverAddress = "";
-    // Post to Azure
-    serverAddress = "markwsserve2.azurewebsites.net";
-    status = postToEndpoint(serverAddress, "/cloudservices/rest/weather/save", 80, json);
-    if(status != 200)
-      ++errorCount;
     // Post to Heroku
     serverAddress = "mark-servicesapp.herokuapp.com";
     status = postToEndpoint(serverAddress, "/rest/weather/save", 80, json);
+    if(status != 200)
+      ++errorCount;
+    // Post to Azure
+    serverAddress = "markwsserve2.azurewebsites.net";
+    status = postToEndpoint(serverAddress, "/cloudservices/rest/weather/save", 80, json);
     if(status != 200)
       ++errorCount;
     // Post to AWS
@@ -153,8 +172,28 @@ void loop()
   displayRemoteLED("LED", color);
 #endif
 
+  // Disable the Watch Dog while we are sleeping in wait()
+  wdEnable = false;
+
   // Sleep until we need to read the sensors again
   wait(SAMPLE_TIME_SECS * 1000UL);
+}
+
+/**
+ * NAME: freeRam()
+ * DESCRIPTION: Utility method to get Free RAM
+ * 
+ * INPUTS:
+ *    None
+ * OUTPUTS:
+ *    Available Free RAM in bytes
+ *    
+ */
+int freeRam() 
+{
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 }
 
 /**
@@ -200,7 +239,7 @@ void wait(unsigned long waitTime)
     currentMillis = millis();
   }while (currentMillis - previousMillis < waitTime);
 }
-
+ 
 /**
  * NAME: createJSON()
  * DESCRIPTION: Utility method to convert sensor data to JSON.
@@ -274,16 +313,16 @@ void displayLED(int value)
  */
 void displayRemoteLED(String cmd, String data)
 {
-  Serial.println(F("Sending Message to Remote LED Display........"));
+  Log.verbose(F("Sending Message to Remote LED Display........"));
   if (remoteLedClient.connect(ledDisplayAddress, ledDisplayPort)) 
   {
-    Serial.println(F("Connected to Remote LED Display"));
+    Log.verbose(F("connected to Remote LED Display....."));
     remoteLedClient.print(cmd + "=" + data + "\n");
-    Serial.println(F("Message sent"));
+    Log.verbose(F("message sent\n\n"));
   }
   else
   {
-    Serial.println(F("No Connection to Remote LED Display"));
+    Log.verbose(F("no Connection to Remote LED Display\n\n"));
   }
 }
 
@@ -365,3 +404,84 @@ int postToEndpoint(String serverAddress, String uri, int port, String json)
   // Return HTTP Status Code
   return statusCode;
 }
+
+
+/**
+ * NAME: initRTC()
+ * DESCRIPTION: Utility method to initialize the Real Time Clock.
+ * 
+ * INPUTS:
+ *    None
+ * OUTPUTS:
+ *    None
+ *    
+ */
+void initRTC()
+{
+   // Disable RTC interrupts
+  Log.verbose(F("Initializing the RTC and internal Watch Dog....."));   
+  cli();
+   
+  // Initialize 32.768kHz Oscillator and disable the oscillator
+  uint8_t temp = CLKCTRL.XOSC32KCTRLA;
+  temp &= ~CLKCTRL_ENABLE_bm;
+  
+  // Enable writing to protected register and wait until XOSC32KS becomes 0
+  CPU_CCP = CCP_IOREG_gc;
+  CLKCTRL.XOSC32KCTRLA = temp;
+  while(CLKCTRL.MCLKSTATUS & CLKCTRL_XOSC32KS_bm);
+    
+  // SEL = 0 (Use External Crystal) and enable writing to protected register
+  temp = CLKCTRL.XOSC32KCTRLA;
+  temp &= ~CLKCTRL_SEL_bm;
+  CPU_CCP = CCP_IOREG_gc;
+  CLKCTRL.XOSC32KCTRLA = temp;
+    
+  // Enable oscillator and Enable writing to protected register
+  temp = CLKCTRL.XOSC32KCTRLA;
+  temp |= CLKCTRL_ENABLE_bm;
+  CPU_CCP = CCP_IOREG_gc;
+  CLKCTRL.XOSC32KCTRLA = temp;
+    
+  //Initialize RTC and wait for all register to be synchronized
+  while (RTC.STATUS > 0);
+
+  // Set 32.768kHz External Crystal Oscillator (XOSC32K), enable Periodic Interrupts, at RTC Clock Cycles 32768 (1 second)
+  RTC.CLKSEL = RTC_CLKSEL_TOSC32K_gc;
+  RTC.DBGCTRL = RTC_DBGRUN_bm;
+  RTC.PITINTCTRL = RTC_PI_bm; 
+  RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc | RTC_PITEN_bm;
+
+  // Enable RTC interrupts
+  sei();
+  Log.verbose(F("complete\n"));   
+}
+
+/**
+ * NAME: ISR()
+ * DESCRIPTION: Interrupt Service Routine for RTC.
+ * PROCESS:   Decrement applications Watch Dog counter.
+ *            If applications Watch Dog counter hits 0 then use real Watch Dog Timer to reset the Arduino (the Application will reset the applications Watch Dog counter in loop()). 
+ * 
+ * INPUTS:
+ *    None
+ * OUTPUTS:
+ *    None
+ *    
+ */
+ISR(RTC_PIT_vect)
+{
+  // Clear interrupt flag by writing '1'
+  RTC.PITINTFLAGS = RTC_PI_bm;
+
+  // If Watch Dog enabled then decrement Watch Dog count and if we hit 0 then assume Arduino hung so use the actual Watch Dog Timer to reset the Arduino
+  if(wdEnable)
+  {
+    --wdSecCount;
+    if(wdSecCount == 0)
+    {
+      Serial.println("Watch Dog expired and going to reset the Arduino in 2 seconds");
+      wdt_enable(WDTO_2S);
+    }
+  }
+ }
