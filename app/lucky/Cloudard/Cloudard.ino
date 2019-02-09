@@ -481,6 +481,7 @@ ISR(RTC_PIT_vect)
     if(wdSecCount == 0)
     {
       Serial.println("Watch Dog expired and going to reset the Arduino in 2 seconds");
+      wdEnable = false;
       wdt_enable(WDTO_2S);
     }
   }
