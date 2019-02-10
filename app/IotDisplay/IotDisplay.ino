@@ -1,3 +1,13 @@
+/**
+ * NAME: IotDisplay.c
+ * DESCRIPTION: Utility library to support the LCD Display.
+ * 
+ * AUTHOR: Professor Mark Reha
+ * VERSION: 1.0.0   Initial release
+ * COPYRIGHT: On The Edge Software Consulting Services 2019.  All rights reserved.
+ * 
+ */
+
 #include "IotDisplay.h"
 
 #include <CytronWiFiShield.h>
@@ -32,6 +42,17 @@ bool hasConnectedToClient = false;
 IPAddress ipAddress;
 ESP8266Server server(8081);
 
+/**
+ * NAME: setup()
+ * DESCRIPTION: Arduino Entry Point for setting up the application:
+ * PROCESS:       Initialize Serial Port
+ *                Connect to the Wifi Network
+ *                Initialize LCD Display, display Welcome Message, and display Connectivity IP Address Message
+ *                Clear the LCD Display
+  * INPUTS: None
+ * OUTPUTS: None
+ * 
+ */
 void setup() 
 {
   // Initilaie the Serial Port
@@ -68,8 +89,21 @@ void setup()
 
   // Clear the LED Display and wait for Commands from the Remote IoT Arduino
   clearDisplay();
- }
+}
 
+/**
+ * NAME: loop()
+ * DESCRIPTION: Arduino Entry Point for the application:
+ * PROCESS:       Loop Forever
+ *                  If not connected to remote Client then print IP Address and waiting Message to Serial Port
+ *                  Check if connected to remote Client and if connected wait until a Display Command is received
+ *                    Once Display Command is received then swith on Command: LED=[PURPLE | WHITE | YELLOW | RED]   
+ *                    Update the LCD Display
+ *                  Sleep
+ * INPUTS: None
+ * OUTPUTS: None
+ * 
+ */
 void loop() 
 {
 #if HAS_IOT
@@ -138,6 +172,13 @@ void loop()
 #endif
 }
 
+/**
+ * NAME: calculateLEDColor()
+ * DESCRIPTION: Utility test method to cycle thru colors based on current X and Y LED screen location.
+ * INPUTS: None
+ * OUTPUTS: LED Color Value
+ * 
+ */
 int calculateLEDColor()
 {
   int color = (ledY & 1) ? (ledX & 1 ? PURPLE : WHITE) : (ledX & 1 ? WHITE : PURPLE);
@@ -148,6 +189,13 @@ int calculateLEDColor()
   return color; 
 }
 
+/**
+ * NAME: calculateNextLED()
+ * DESCRIPTION: Utility method to calculate the next X and Y LED screen location.
+ * INPUTS: None
+ * OUTPUTS: None (sets global variables ledX and ledY)
+ * 
+ */
 void calculateNextLED()
 {
   ++ledX;

@@ -1,3 +1,13 @@
+/**
+ * NAME: IotDisplay.h
+ * DESCRIPTION: Header file for the Utility library to support the LCD Display.
+ * 
+ * AUTHOR: Professor Mark Reha
+ * VERSION: 1.0.0   Initial release
+ * COPYRIGHT: On The Edge Software Consulting Services 2019.  All rights reserved.
+ * 
+ */
+
 #ifndef IOTDISPLAY_h
 #define IOTDISPLAY_h
 
