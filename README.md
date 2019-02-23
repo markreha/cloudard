@@ -1,7 +1,7 @@
 **Arduino IoT Device Reference Application**
 ==================
 The example IoT Device Reference application implemented in an Arduino Uno Wifi Rev2 and Lucky Shield reads IoT data from the 
-Lucky Shield and posts this data to the IoT Services Reference application using its published REST API's. These applications in combination demonstrate a simple, scalable, Cloud based IoT application. The IoT Device Reference application also can be extended to use an external LCD Dispaly that is connected to a second Arduino Uno Rev3 (with a Wifi Shield and LCD Shield) using the Wifi network to communicate back and forth. The example application and source code is located within this repository under the app/IotDisplay folder. Get the [Cloud Workshop SDK!](https://github.com/markreha/cloudworkshop/blob/master/README.md)
+Lucky Shield and posts this data to the IoT Services Reference application using its published REST API's. These applications in combination demonstrate a simple, scalable, Cloud based IoT application. The IoT Device Reference application also can be extended to use an external LCD Display that is connected to a second Arduino Uno Rev3 (with a Wifi Shield and LCD Shield) using the Wifi network to communicate back and forth. The example application and source code is located within this repository under the app/IotDisplay folder. Get the [Cloud Workshop SDK!](https://github.com/markreha/cloudworkshop/blob/master/README.md)
 
 <table style="border-collapse: collapse; border: none;">
 	<tr>
@@ -33,6 +33,15 @@ The IoT Device Reference application logic, as illustrated in the flow chart bel
 
 ![IoT Device Flow Chart Diagram](https://github.com/markreha/cloudworkshop/blob/master/sdk/docs/architecture/images/iotflowchart1.png)
 
+Over the Air Configuration
+--------
+The IoT Device Reference application can be configured thru a Wifi Access Point. It should be noted that the external LCD Display application does not support Over the Air Configuration due to the lack of program space to support this feature. You will need to use the Arduino IDE and reflash the application to change the Wifi network configuration. To configure the IoT Device perform the following steps:
+1) Hold down the Joy Stick button during startup. You will hear 2 short beeps when the Configuration Mode has been entered.
+2) Start your Mac or Windows PC and connect to the IoTAccessPoint Wifi Network.
+3) Open a browser and go to http://http://192.168.4.1 to display the IoT Configuration Setup Page.
+4) Set the SSID Name, SSID Password (can be blank), and the IP Address to the external LCD Display.
+5) Click the Submit. You will hear 2 short beeps when the Configuration has been written to the EEPROM. You will hear 3 short beeps if there was an error. The IoT Device will then be restarted and connect to the configured Wifi network.
+ 
 Repository Contents
 ----------
 This repository contains code to support the Arduino Uno Wifi Rev2 and Lucky Shield. The IoT Device Reference application can be used as a starting point to monitor Weather IoT data. I order to build the Arduino application requires the following libraries: WiFiNINA, ArduinoHttpClient, ArduinoJson, and ArduinoLog. To run this code on your Arduino simply clone this repository, open the Arduino IDE project file, and customize the code as nessarary for your backend REST API's.
