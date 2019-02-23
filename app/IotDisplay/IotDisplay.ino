@@ -24,7 +24,7 @@
 #define HAS_IOT true
 
 // Program Contants
-String appTitle = "IoT Weather Application";
+String appTitle = "IoT Weather Station";
 String appVersion = "Version 0.1";
 
 

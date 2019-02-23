@@ -10,6 +10,15 @@
  * 
  */
 #include "Lucky.h"
+#include <WiFiNINA.h>
+#include <HttpClient.h>
+#include <ArduinoJson.h>
+#include <ArduinoLog.h>
+#include <avr/interrupt.h>
+#include <avr/wdt.h>
+#include <EEPROM.h>
+#include "AccessPoint.h"
+#include "Cloudard.h"
 
 // Set this to true if using remote LED Dispaly over Wifi
 #define HAS_LCD true
@@ -19,14 +28,6 @@
 
 // Set this to the number of seconds that the Watch Dog will use before reseting the Arduino
 #define WATCH_DOG_SECONDS 600
-
-#include <WiFiNINA.h>
-#include <HttpClient.h>
-#include <ArduinoJson.h>
-#include <ArduinoLog.h>
-#include <avr/interrupt.h>
-#include <avr/wdt.h>
-#include "Cloudard.h"
 
 WiFiClient wifi;
 WiFiSSLClient wifiSecure;
@@ -41,7 +42,7 @@ volatile int wdSecCount = WATCH_DOG_SECONDS;
 
 /**
  * NAME: setup()
- * DESXRIPTION: Arduino Entry Point for setting up the application:
+ * DESCRIPTION: Arduino Entry Point for setting up the application:
  * PROCESS:       Initialize Luck Shield
  *                Display Welcome Message
  *                Initialize Logger
@@ -62,11 +63,17 @@ void setup()
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
   // Display application startup message
-  Log.notice(F("IoT Weather Application v0.1\n\n"));
+  Log.notice(F("IoT Weather Station v0.1\n\n"));
 
   // Clear LED display
   postCount = 0;
   displayLED(postCount);
+
+  // Read Configuration Settings from EEPROM
+  bool ok = readConfiguration();
+
+  // Check for Network Configuration Page
+  configurationStartupCheck(ok ? false : true);
 
   // Initialize and connect to WiFi module
   connectToWifi();
@@ -79,7 +86,7 @@ void setup()
 
 /**
  * NAME: loop()
- * DESXRIPTION: Arduino Entry Point for the application:
+ * DESCRIPTION: Arduino Entry Point for the application:
  * PROCESS:       Loop Forever
  *                  Get the temperature, pressure, and humidity sensor data
  *                  Convert the sensor data to JSON
@@ -177,6 +184,182 @@ void loop()
 
   // Sleep until we need to read the sensors again
   wait(SAMPLE_TIME_SECS * 1000UL);
+}
+
+/**
+ * NAME: readConfiguration()
+ * DESCRIPTION: Read the Configuration Settings from the EEPROM.
+ * PROCESS:   Read 4 null terminated strings: [0] = Configuration Status, [1] = SSID, [2] = SSID Password, [3] = Display IP Address
+ * 
+ * INPUTS:
+ *    None
+ * OUTPUTS:
+ *    True if Configuration read else return false
+ *    
+ */
+bool readConfiguration()
+{
+  int tokens = 0;
+  int address = 0;
+  byte value;
+  int index = 0;
+  char buffer[50];
+  String flag = "";
+
+  // Read all 4 Configuration Tokens
+  Log.verbose(F("Reading Configuration Settings from EEPROM\n"));
+  while(tokens < 4)
+  {
+    // Get value from EEPROM
+    value = EEPROM.read(address);
+
+    // Check if the Configuration Flag is not set and if not set just return so we can display the Configuration Page
+    if(tokens == 0 && address == 0 && value != 1)
+      return false;
+
+    // If at end of a Token then end buffer and save value in String
+    // Else save EEPROM value in buffer
+    if(value == 0)
+    {
+      buffer[index++] = '\0';
+      if(tokens == 0)
+      {
+          flag = String(buffer);
+          ++tokens;
+          index = 0;
+      }
+      else if(tokens == 1)
+      {
+          String s1 = String(buffer);
+          s1.toCharArray(ssid, s1.length()+1);
+          ++tokens;
+          index = 0;
+      }
+      else if(tokens == 2)
+      {
+          String s2 = String(buffer);
+          s2.toCharArray(pass, s2.length()+1);
+         ++tokens;
+          index = 0;
+      }
+      else if(tokens == 3)
+      {
+          String s3 = String(buffer);
+          s3.toCharArray(ledDisplayAddress, s3.length()+1);
+          ++tokens;
+          index = 0;
+      }
+    }
+    else
+    {
+      buffer[index++] = value;
+    }
+    ++address;
+  }
+
+  // Print out results and return OK
+  Log.verbose(F("EEPROM Configuration Values are: \n"));
+  Log.verbose("%s\n", ssid);
+  Log.verbose("%s\n", pass);
+  Log.verbose("%s\n", ledDisplayAddress);
+  return true;
+}
+
+/**
+ * NAME: writeConfiguration()
+ * DESCRIPTION: Write the Configuration Settings from the EEPROM.
+ * PROCESS:   Write 4 null terminated strings: [0] = Configuration Status, [1] = SSID, [2] = SSID Password, [3] = Display IP Address
+ * 
+ * INPUTS:
+ *    SSID, SSID Password, and Display IP Address
+ * OUTPUTS:
+ *    None
+ *    
+ */
+void writeConfiguration(String ssid, String password, String displayIp)
+{
+  int address = 0;
+
+  // Clear out EEPROM
+  Log.verbose(F("Writing Configuration Settings to EEPROM\n"));
+  for (int i = 0;i < EEPROM.length();++i)
+    EEPROM.write(i, 0xFF);
+  // Write Configuration Set flag
+  EEPROM.write(address++, 1);
+  EEPROM.write(address++, 0); 
+  // Write SSID
+  for (int i = 0;i < ssid.length();++i)
+    EEPROM.write(address++, ssid[i]);
+  EEPROM.write(address++, 0); 
+  // Write SSID Password
+  for (int i = 0;i < password.length();++i)
+    EEPROM.write(address++, password[i]);
+  EEPROM.write(address++, 0); 
+  // Write Display IP Address
+  for (int i = 0;i < displayIp.length();++i)
+    EEPROM.write(address++, displayIp[i]);
+  EEPROM.write(address++, 0);
+}
+
+/**
+ * NAME: configurationStartupCheck()
+ * DESCRIPTION: Method to interface to display Configuration Page thru a Wifi Access Point to get SSID, Password, and Display IP Address from a User.
+ * PROCESS:   Sound the Buzzer Twice
+ *            If the Joy Stick Button is Pressed then display Configuration page and get all the network connectivity information from the user.
+ * 
+ * INPUTS:
+ *    ignoreButtonCheck Set to true to bypass Joy Stick Button press check
+ * OUTPUTS:
+ *    None
+ *    
+ */
+void configurationStartupCheck(bool ignoreButtonCheck)
+{
+  // Check if Joy Stick Button is pressed
+  int buttonState = 1;
+  if(!ignoreButtonCheck)
+    buttonState = lucky.gpio().digitalRead(JOYC);
+  if(buttonState)
+  {
+    // Sound Buzzer twice on startup
+    tone(5, 0); tone(5, 300); delay(500); noTone(5); delay(500); tone(5, 300); delay(500); noTone(5);
+
+    // Display Configuration Page using Wifi Access Point
+    bool ok = accessPoint();
+    if(ok)
+    {
+      //  If OK sound Buzzer twice
+      tone(5, 0); tone(5, 300); delay(500); noTone(5); delay(500); tone(5, 300); delay(500); noTone(5);
+
+      // Save all the network configuration info
+      String s1 = getConfiguredSSID();
+      String s2 = getConfiguredPW();
+      String s3 = getConfiguredDisplayIP();
+      if(s1.length() == 0 || s2.length() == 0 || s3.length() == 0)
+      {
+        // Error sound Buzzer three times
+        tone(5, 0); tone(5, 500); delay(500); noTone(5); delay(500); tone(5, 500); delay(500); noTone(5); tone(5, 500); delay(500); noTone(5);
+      }
+      else
+      {
+        // Save the Configuration in the global variables
+        s1.toCharArray(ssid, s1.length()+1);        
+        Log.verbose(F("SSID Configured to %s\n"), s1.c_str());
+        s2.toCharArray(pass, s2.length()+1);
+        Log.verbose(F("SSID Password Configured to %s\n"), s2.c_str());
+        s3.toCharArray(ledDisplayAddress, s3.length()+1);
+        Log.verbose(F("Display IP Address Configured to %s\n"), s3.c_str());
+
+        // Save the Configuration in EEPROM
+        writeConfiguration(ssid, pass, ledDisplayAddress);
+      }
+    }
+    else
+    {
+      // Else Error sound Buzzer three times
+      tone(5, 0); tone(5, 500); delay(500); noTone(5); delay(500); tone(5, 500); delay(500); noTone(5); tone(5, 500); delay(500); noTone(5);
+    }
+  }
 }
 
 /**
