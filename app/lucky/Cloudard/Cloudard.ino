@@ -35,7 +35,7 @@ WiFiClient remoteLedClient;
 char ssid[] = SECRET_SSID;        
 char pass[] = SECRET_PASS;    
 int postCount = 0;   
-char ledDisplayAddress[] = "10.0.1.154";
+char ledDisplayAddress[] = "000.000.000.000";
 int ledDisplayPort = 8081;
 bool wdEnable = true;
 volatile int wdSecCount = WATCH_DOG_SECONDS;
@@ -335,7 +335,7 @@ void configurationStartupCheck(bool ignoreButtonCheck)
       String s1 = getConfiguredSSID();
       String s2 = getConfiguredPW();
       String s3 = getConfiguredDisplayIP();
-      if(s1.length() == 0 || s2.length() == 0 || s3.length() == 0)
+      if(s1.length() == 0 || s3.length() == 0)
       {
         // Error sound Buzzer three times
         tone(5, 0); tone(5, 500); delay(500); noTone(5); delay(500); tone(5, 500); delay(500); noTone(5); tone(5, 500); delay(500); noTone(5);
@@ -496,6 +496,9 @@ void displayLED(int value)
  */
 void displayRemoteLED(String cmd, String data)
 {
+  Serial.print("Connecting to ");
+ Log.verbose("%s\n", ledDisplayAddress);
+  
   Log.verbose(F("Sending Message to Remote LED Display........"));
   if (remoteLedClient.connect(ledDisplayAddress, ledDisplayPort)) 
   {
