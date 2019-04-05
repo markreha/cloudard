@@ -334,7 +334,7 @@ void configurationStartupCheck(bool ignoreButtonCheck)
       // Save all the network configuration info
       String s1 = getConfiguredSSID();
       String s2 = getConfiguredPW();
-      String s3 = getConfiguredDisplayIP();
+      String s3 = getConfiguredDisplayIP();   
       if(s1.length() == 0 || s3.length() == 0)
       {
         // Error sound Buzzer three times

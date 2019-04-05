@@ -94,7 +94,8 @@ bool accessPoint()
             // Get the Posted Form Data, Parse it, and set in local variables
             String temp = currentLine.substring(currentLine.indexOf("Content-Length:") + 15);
             temp.trim();
-            int length = temp.toInt();            
+            int length = temp.toInt();   
+            length = length + 22;     // TOTAL HACK: Add the Accepted-Language header to the count
             currentLine = "";            
             while(length)
             {
@@ -115,6 +116,7 @@ bool accessPoint()
             configuredSSID = s1.substring(s1.indexOf('=')+1);
             configuredSSID_PW = s2.substring(s2.indexOf('=')+1);
             configuredDisplay_IP = s3.substring(s3.indexOf('=')+1);
+            
             configuredSSID.replace('+', ' ');
             configuredSSID.trim();
             configuredSSID_PW.trim();
