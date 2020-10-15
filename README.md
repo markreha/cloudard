@@ -38,7 +38,7 @@ Over the Air Configuration
 The IoT Device Reference application can be configured thru a Wifi Access Point. It should be noted that the external LCD Display application does not support Over the Air Configuration due to the lack of program space to support this feature. You will need to use the Arduino IDE and reflash the application to change the Wifi network configuration. To configure the IoT Device perform the following steps:
 1) Hold down the Joy Stick button during startup. You will hear 2 short beeps when the Configuration Mode has been entered.
 2) Start your Mac or Windows PC and connect to the IoTAccessPoint Wifi Network.
-3) Open a browser and go to http://http://192.168.4.1 to display the IoT Configuration Setup Page.
+3) Open a browser and go to http://192.168.4.1 to display the IoT Configuration Setup Page.
 4) Set the SSID Name, SSID Password (can be blank), and the IP Address for the external LCD Display.
 5) Click the Submit button. You will hear 2 short beeps when the Configuration has been written to the EEPROM. You will hear 3 short beeps if there was an error. The IoT Device will then be restarted and connect to the configured Wifi network.
  
